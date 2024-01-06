@@ -1,6 +1,8 @@
 package org.xiatian.shortlink.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,14 +12,21 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.xiatian.shortlink.admin.common.convention.exception.ClientException;
 import org.xiatian.shortlink.admin.common.enums.UserErrorCodeEnum;
 import org.xiatian.shortlink.admin.dao.entity.UserDO;
 import org.xiatian.shortlink.admin.dao.mapper.UserMapper;
 import org.xiatian.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.xiatian.shortlink.admin.dto.req.UserUpdateReqDTO;
+import org.xiatian.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.xiatian.shortlink.admin.dto.resp.UserRespDTO;
 import org.xiatian.shortlink.admin.service.UserService;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.xiatian.shortlink.admin.common.constant.RedisCacheConstant.LOCK_USER_REGISTER_KEY;
 import static org.xiatian.shortlink.admin.common.enums.UserErrorCodeEnum.*;
@@ -31,6 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     private final RedissonClient redissonClient;
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -76,5 +86,57 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public void update(UserUpdateReqDTO requestParam) {
+        //TODO：完成用户更新
+    }
+
+    @Override
+    public UserLoginRespDTO login(UserRegisterReqDTO requestParam) {
+        LambdaQueryWrapper<UserDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserDO::getUsername, requestParam.getUsername())
+                .eq(UserDO::getPassword, requestParam.getPassword())
+                .eq(UserDO::getDelFlag, 0);;
+        UserDO userDO = baseMapper.selectOne(queryWrapper);
+        if(userDO == null){
+            throw new ClientException(USER_NULL);
+        }
+        /*
+         * 用户登陆接口防刷
+         * 采用了Redis的哈希结构
+         * Hash
+         * Key: login_用户名
+         * Value:
+         *     Field: token标识
+         *     Value: JSON(用户信息)
+         */
+        Map<Object,Object> hasLoginMap = stringRedisTemplate.opsForHash().entries("login_"+requestParam.getUsername());
+        //hash结构中可能有多个field所以只返回第一个，后面的都抛出异常
+        if(CollUtil.isNotEmpty(hasLoginMap)){
+            String token = hasLoginMap.keySet().stream()
+                    .findFirst().map(Object::toString)
+                    .orElseThrow(()->new ClientException("用户登陆错误"));
+            return new UserLoginRespDTO(token);
+        }
+        String uuid = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForHash().put("login_" + requestParam.getUsername(), uuid,JSON.toJSONString(userDO));
+        stringRedisTemplate.expire("login_" + requestParam.getUsername(), 30L, TimeUnit.MINUTES);
+        return new UserLoginRespDTO(uuid);
+    }
+
+    @Override
+    public Boolean checkLogin(String username, String token) {
+        return stringRedisTemplate.opsForHash().get("login_" + username, token) != null;
+    }
+
+    @Override
+    public void logout(String username, String token) {
+        if (checkLogin(username, token)) {
+            stringRedisTemplate.delete("login_" + username);
+            return;
+        }
+        throw new ClientException("用户Token不存在或用户未登录");
     }
 }

@@ -3,6 +3,8 @@ package org.xiatian.shortlink.admin.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.xiatian.shortlink.admin.dao.entity.UserDO;
 import org.xiatian.shortlink.admin.dto.req.UserRegisterReqDTO;
+import org.xiatian.shortlink.admin.dto.req.UserUpdateReqDTO;
+import org.xiatian.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.xiatian.shortlink.admin.dto.resp.UserRespDTO;
 
 /**
@@ -32,4 +34,35 @@ public interface UserService extends IService<UserDO> {
      * @param requestParam 注册用户请求参数
      */
     void register(UserRegisterReqDTO requestParam);
+
+    /**
+     * 修改用户信息
+     *
+     * @param requestParam 用户信息
+     */
+    void update(UserUpdateReqDTO requestParam);
+
+    /**
+     * 用户登陆
+     * @param requestParam 用户账号密码
+     * @return token
+     */
+    UserLoginRespDTO login(UserRegisterReqDTO requestParam);
+
+    /**
+     * 检查用户是否登录
+     *
+     * @param username 用户名
+     * @param token    用户登录 Token
+     * @return 用户是否登录标识
+     */
+    Boolean checkLogin(String username, String token);
+
+    /**
+     * 退出登录
+     *
+     * @param username 用户名
+     * @param token    用户登录 Token
+     */
+    void logout(String username, String token);
 }
