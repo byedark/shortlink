@@ -36,7 +36,9 @@ public class UserTransmitFilter implements Filter {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         String requestURI = httpServletRequest.getRequestURI();
         if (!IGNORE_URI.contains(requestURI)) {
+            //由于是Restful风格的，所以导致了修改用户信息等都是/user，所以注册的路由无法直接ignore，所以我们需要getMethod
             String method = httpServletRequest.getMethod();
+            //如果是非用户注册请求，需要处理
             if (!(Objects.equals(requestURI, "/api/short-link/admin/v1/user") && Objects.equals(method, "POST"))) {
                 String username = httpServletRequest.getHeader("username");
                 String token = httpServletRequest.getHeader("token");

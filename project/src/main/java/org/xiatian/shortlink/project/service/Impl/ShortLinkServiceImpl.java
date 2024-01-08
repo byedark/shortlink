@@ -1,7 +1,9 @@
 package org.xiatian.shortlink.project.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.StrBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +14,9 @@ import org.xiatian.shortlink.project.common.convention.exception.ServiceExceptio
 import org.xiatian.shortlink.project.dao.entity.ShortLinkDO;
 import org.xiatian.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.xiatian.shortlink.project.dto.req.ShortLinkCreateReqDTO;
+import org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
+import org.xiatian.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.xiatian.shortlink.project.service.ShortLinkService;
 import org.xiatian.shortlink.project.toolkit.HashUtil;
 
@@ -65,6 +69,17 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
                 .originUrl(requestParam.getOriginUrl())
                 .gid(requestParam.getGid())
                 .build();
+    }
+
+    @Override
+    public IPage<ShortLinkPageRespDTO> pageShortLink(ShortLinkPageReqDTO requestParam) {
+        LambdaQueryWrapper<ShortLinkDO> queryWrapper = new LambdaQueryWrapper<>();
+        lambdaQuery().eq(ShortLinkDO::getGid,requestParam.getGid())
+                .eq(ShortLinkDO::getEnableStatus,0)
+                .eq(ShortLinkDO::getDelFlag,0)
+                .orderByDesc(ShortLinkDO::getCreateTime);
+        IPage<ShortLinkDO> resultPage = baseMapper.selectPage(requestParam,queryWrapper);
+        return resultPage.convert(each-> BeanUtil.toBean(each, ShortLinkPageRespDTO.class));
     }
 
     /**
