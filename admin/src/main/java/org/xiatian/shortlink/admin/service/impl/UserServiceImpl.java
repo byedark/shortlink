@@ -22,6 +22,7 @@ import org.xiatian.shortlink.admin.dto.req.UserRegisterReqDTO;
 import org.xiatian.shortlink.admin.dto.req.UserUpdateReqDTO;
 import org.xiatian.shortlink.admin.dto.resp.UserLoginRespDTO;
 import org.xiatian.shortlink.admin.dto.resp.UserRespDTO;
+import org.xiatian.shortlink.admin.service.GroupService;
 import org.xiatian.shortlink.admin.service.UserService;
 
 import java.util.Map;
@@ -41,6 +42,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     private final RedissonClient redissonClient;
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
     private final StringRedisTemplate stringRedisTemplate;
+    private final GroupService groupService;
 
     @Override
     public UserRespDTO getUserByUsername(String username) {
@@ -79,7 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 }
                 //新增用户至布隆过滤器
                 userRegisterCachePenetrationBloomFilter.add(requestParam.getUsername());
-                //groupService.saveGroup(requestParam.getUsername(), "默认分组");
+                groupService.saveGroup(requestParam.getUsername(), "默认分组");
                 return;
             }
             throw new ClientException(USER_NAME_EXIST);
