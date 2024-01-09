@@ -9,3 +9,10 @@ spring:
     redis:
       host: 43.143.154.173
       port: 6379
+  mvc:
+    view:
+      prefix: /templates/
+      suffix: .html
+short-link:
+  domain:
+    default: http://localhost:8001

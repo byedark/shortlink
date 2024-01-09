@@ -1,36 +1,35 @@
-package org.xiatian.shortlink.admin.remote.dto.req;
+package org.xiatian.shortlink.project.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.List;
 
 /**
- * 短链接批量创建请求对象
+ * 短链接修改请求对象
  */
 @Data
-public class ShortLinkBatchCreateReqDTO {
+public class ShortLinkUpdateReqDTO {
 
     /**
-     * 原始链接集合
+     * 原始链接
      */
-    private List<String> originUrls;
+    private String originUrl;
 
     /**
-     * 描述集合
+     * 完整短链接
      */
-    private List<String> describes;
+    private String fullShortUrl;
+
+    /**
+     * 原始分组标识
+     */
+    private String originGid;
 
     /**
      * 分组标识
      */
     private String gid;
-
-    /**
-     * 创建类型 0：接口创建 1：控制台创建
-     */
-    private Integer createdType;
 
     /**
      * 有效期类型 0：永久有效 1：自定义
@@ -42,4 +41,9 @@ public class ShortLinkBatchCreateReqDTO {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date validDate;
+
+    /**
+     * 描述
+     */
+    private String describe;
 }

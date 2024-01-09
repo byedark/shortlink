@@ -1,18 +1,21 @@
 package org.xiatian.shortlink.project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.xiatian.shortlink.project.common.convention.result.Result;
 import org.xiatian.shortlink.project.common.convention.result.Results;
 import org.xiatian.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO;
+import org.xiatian.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
+import org.xiatian.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkPageRespDTO;
 import org.xiatian.shortlink.project.service.ShortLinkService;
+
+import java.util.List;
 
 /**
  * 短链接控制层
@@ -38,4 +41,28 @@ public class ShortLinkController {
         return Results.success(shortLinkService.pageShortLink(requestParam));
     }
 
+    /**
+     * 查询短链接分组内数量
+     */
+    @GetMapping("/api/short-link/v1/count")
+    public Result<List<ShortLinkGroupCountQueryRespDTO>> listGroupShortLinkCount(@RequestParam("requestParam") List<String> requestParam) {
+        return Results.success(shortLinkService.listGroupShortLinkCount(requestParam));
+    }
+
+    /**
+     * 修改短链接
+     */
+    @PostMapping("/api/short-link/v1/update")
+    public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
+        shortLinkService.updateShortLink(requestParam);
+        return Results.success();
+    }
+
+    /**
+     * 短链接跳转原始链接
+     */
+    @GetMapping("/{short-uri}")
+    public void restoreUrl(@PathVariable("short-uri") String shortUri, ServletRequest request, ServletResponse response) {
+        shortLinkService.restoreUrl(shortUri, request, response);
+    }
 }

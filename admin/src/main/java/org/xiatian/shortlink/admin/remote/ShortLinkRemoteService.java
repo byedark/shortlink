@@ -6,11 +6,9 @@ import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.xiatian.shortlink.admin.common.convention.result.Result;
-import org.xiatian.shortlink.admin.remote.dto.req.ShortLinkBatchCreateReqDTO;
 import org.xiatian.shortlink.admin.remote.dto.req.ShortLinkCreateReqDTO;
 import org.xiatian.shortlink.admin.remote.dto.req.ShortLinkPageReqDTO;
 import org.xiatian.shortlink.admin.remote.dto.req.ShortLinkUpdateReqDTO;
-import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkCreateRespDTO;
 import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
@@ -30,20 +28,9 @@ public interface ShortLinkRemoteService {
      * @param requestParam 创建短链接请求参数
      * @return 短链接创建响应
      */
+    //由于对象已经解封装，需要重新进行封装
     default Result<ShortLinkCreateRespDTO> createShortLink(ShortLinkCreateReqDTO requestParam) {
         String resultBodyStr = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/create", JSON.toJSONString(requestParam));
-        return JSON.parseObject(resultBodyStr, new TypeReference<>() {
-        });
-    }
-
-    /**
-     * 批量创建短链接
-     *
-     * @param requestParam 批量创建短链接请求参数
-     * @return 短链接批量创建响应
-     */
-    default Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam) {
-        String resultBodyStr = HttpUtil.post("http://127.0.0.1:8001/api/short-link/v1/create/batch", JSON.toJSONString(requestParam));
         return JSON.parseObject(resultBodyStr, new TypeReference<>() {
         });
     }
