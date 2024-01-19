@@ -99,6 +99,7 @@ public class ShortLinkDO extends BaseDO {
      */
     private Integer totalUip;
 
+    //这三个是为了做连表查询，数据中是不存在的.
     /**
      * 今日PV
      */

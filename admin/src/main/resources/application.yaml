@@ -11,4 +11,8 @@ spring:
     redis:
       host: 43.143.154.173
       port: 6379
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 
