@@ -2,17 +2,37 @@ server:
   port: 8001
 
 spring:
+# shardingsphere分表mysql
   datasource:
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+# redis
   data:
     redis:
       host: 43.143.154.173
       port: 6379
+# 404页面转跳
   mvc:
     view:
       prefix: /templates/
       suffix: .html
+# 注册中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 short-link:
+# 短链接转跳地址
   domain:
     default: http://localhost:8001
+# 高德地图api
+  stats:
+    locale:
+      amap-key: 824c511f0997586ea016f979fdb23087
+
+# debug日志
+logging:
+  level:
+    com.baomidou.mybatisplus: DEBUG
+
+

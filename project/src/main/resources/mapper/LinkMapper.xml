@@ -3,4 +3,44 @@
 
 <mapper namespace="org.xiatian.shortlink.project.dao.mapper.ShortLinkMapper">
 
+    <!-- 分页查询短链接 -->
+    <!--    如何查询？需要关联表，也是就是查询分组里短链接的时候要联合today和总表两张表，总计历史的三个V和当天的三个V，然后排序字段也是自定义-->
+    <!--    left join会有重复字段，保留前一张表的，后一张表只需tpv,tuv和tuip三个-->
+    <select id="pageLink" parameterType="org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO"
+            resultType="org.xiatian.shortlink.project.dao.entity.ShortLinkDO">
+        SELECT t.*,
+        COALESCE(s.today_pv, 0) AS todayPv,
+        COALESCE(s.today_uv, 0) AS todayUv,
+        COALESCE(s.today_uip, 0) AS todayUip
+        FROM t_link t
+        LEFT JOIN t_link_stats_today s ON t.gid = s.gid
+        AND t.full_short_url = s.full_short_url
+        AND s.date = CURDATE()
+        WHERE t.gid = #{gid}
+        AND t.enable_status = 0
+        AND t.del_flag = 0
+        <choose>
+            <when test="orderTag == 'todayPv'">
+                ORDER BY todayPv DESC
+            </when>
+            <when test="orderTag == 'todayUv'">
+                ORDER BY todayUv DESC
+            </when>
+            <when test="orderTag == 'todayUip'">
+                ORDER BY todayUip DESC
+            </when>
+            <when test="orderTag == 'totalPv'">
+                ORDER BY t.total_pv DESC
+            </when>
+            <when test="orderTag == 'totalUv'">
+                ORDER BY t.total_uv DESC
+            </when>
+            <when test="orderTag == 'totalUip'">
+                ORDER BY t.total_uip DESC
+            </when>
+            <otherwise>
+                ORDER BY t.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
 </mapper>
