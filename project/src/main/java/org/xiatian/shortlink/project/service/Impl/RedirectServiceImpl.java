@@ -3,7 +3,6 @@ package org.xiatian.shortlink.project.service.Impl;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -30,7 +29,9 @@ import org.xiatian.shortlink.project.mq.producer.ShortLinkStatsSaveProducer;
 import org.xiatian.shortlink.project.service.RedirectService;
 import org.xiatian.shortlink.project.toolkit.LinkUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -67,7 +68,7 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
             //这里直接传gid就会导致gid在转跳时候不知道需要查询数据库造成数据库压力
             //TODO: 数据库查询需要优化
             ShortLinkStatsRecordDTO statsRecord = buildLinkStatsRecordAndSetUser(fullShortUrl, request, response);
-            shortLinkStats(fullShortUrl, null, statsRecord);
+            shortLinkStats(statsRecord);
             ((HttpServletResponse) response).sendRedirect(originalLink);
             return;
         }
@@ -93,7 +94,7 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
             //查询到了缓存进行跳转
             if (StrUtil.isNotBlank(originalLink)) {
                 ShortLinkStatsRecordDTO statsRecord = buildLinkStatsRecordAndSetUser(fullShortUrl, request, response);
-                shortLinkStats(fullShortUrl, null, statsRecord);
+                shortLinkStats(statsRecord);
                 ((HttpServletResponse) response).sendRedirect(originalLink);
                 return;
             }
@@ -128,7 +129,9 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
                     TimeUnit.MILLISECONDS
             );
             ShortLinkStatsRecordDTO statsRecord = buildLinkStatsRecordAndSetUser(fullShortUrl, request, response);
-            shortLinkStats(fullShortUrl, shortLinkDO.getGid(), statsRecord);
+            statsRecord.setGid(shortLinkDO.getGid());
+            //调用监控函数，异步
+            shortLinkStats(statsRecord);
             ((HttpServletResponse) response).sendRedirect(shortLinkDO.getOriginUrl());
         } finally {
             lock.unlock();
@@ -184,12 +187,10 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
     }
 
     // 更新短链接监控信息（根据buildLinkStatsRecordAndSetUser函数里面获取到的相关信息）
-    public void shortLinkStats(String fullShortUrl, String gid, ShortLinkStatsRecordDTO statsRecord) {
-        Map<String, String> producerMap = new HashMap<>();
-        producerMap.put("fullShortUrl", fullShortUrl);
-        producerMap.put("gid", gid);
-        producerMap.put("statsRecord", JSON.toJSONString(statsRecord));
+    public void shortLinkStats(ShortLinkStatsRecordDTO statsRecord) {
+        String uuid = UUID.randomUUID().toString();
+        statsRecord.setKeys(uuid);
         //传入消息队列
-        shortLinkStatsSaveProducer.send(producerMap);
+        shortLinkStatsSaveProducer.sendMessage(statsRecord);
     }
 }
