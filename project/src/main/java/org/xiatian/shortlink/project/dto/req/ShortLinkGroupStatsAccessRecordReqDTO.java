@@ -3,7 +3,7 @@ package org.xiatian.shortlink.project.dto.req;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.xiatian.shortlink.project.dao.entity.LinkAccessLogsDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkAccessLogsDO;
 
 /**
  * 分组短链接监控访问记录请求参数

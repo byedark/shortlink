@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xiatian.shortlink.admin.common.biz.user.UserContext;
 import org.xiatian.shortlink.admin.common.convention.exception.ClientException;
@@ -39,12 +40,15 @@ import static org.xiatian.shortlink.admin.common.constant.RedisCacheConstant.LOC
 public class  GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> implements GroupService {
 
     private final RedissonClient redissonClient;
-    private final ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
-    };
+    private final ShortLinkRemoteService shortLinkRemoteService;
+
+    @Value("${short-link.group.max-num}")
+    private Integer groupMaxNum;
 
 
     @Override
     public void saveGroup(String groupName) {
+        //一个用户最多创建10个组
         saveGroup(UserContext.getUsername(), groupName);
     }
 
@@ -59,8 +63,7 @@ public class  GroupServiceImpl extends ServiceImpl<GroupMapper, GroupDO> impleme
                     .eq(GroupDO::getDelFlag, 0);
             //查询一个用户所有的
             List<GroupDO> groupDOList = baseMapper.selectList(queryWrapper);
-            //一个用户可以创建的最多组数
-            int groupMaxNum = 10;
+            //一个用户可以创建的最多Max组
             if (CollUtil.isNotEmpty(groupDOList) && groupDOList.size() == groupMaxNum) {
                 throw new ClientException(String.format("已超出最大分组数：%d", groupMaxNum));
             }

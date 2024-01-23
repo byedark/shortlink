@@ -2,6 +2,7 @@ package org.xiatian.shortlink.admin.common.biz.user;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
+import com.google.common.collect.Lists;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,12 +11,13 @@ import lombok.SneakyThrows;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.xiatian.shortlink.admin.common.convention.exception.ClientException;
 import org.xiatian.shortlink.admin.common.convention.result.Results;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
+
+import static org.xiatian.shortlink.admin.common.constant.RedisCacheConstant.USER_LOGIN_KEY;
 
 /**
  * 用户信息传输过滤器
@@ -48,7 +50,7 @@ public class UserTransmitFilter implements Filter {
                 }
                 Object userInfoJsonStr;
                 try {
-                    userInfoJsonStr = stringRedisTemplate.opsForHash().get("login_" + username, token);
+                    userInfoJsonStr = stringRedisTemplate.opsForHash().get(USER_LOGIN_KEY + username, token);
                     if (userInfoJsonStr == null) {
                         throw new ClientException("用户token错误");
                     }

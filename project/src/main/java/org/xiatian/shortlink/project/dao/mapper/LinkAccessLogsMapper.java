@@ -3,8 +3,8 @@ package org.xiatian.shortlink.project.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.xiatian.shortlink.project.dao.entity.LinkAccessLogsDO;
-import org.xiatian.shortlink.project.dao.entity.LinkAccessStatsDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkAccessLogsDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkAccessStatsDO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 

@@ -2,8 +2,11 @@ package org.xiatian.shortlink.project.toolkit;
 
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.xiatian.shortlink.project.common.convention.exception.ServiceException;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
@@ -132,4 +135,29 @@ public class LinkUtil {
         return actualIp.startsWith("192.168.") || actualIp.startsWith("10.") ? "WIFI" : "Mobile";
     }
 
+    /**
+     * 获取原始链接中的域名
+     * 如果原始链接包含 www 开头的话需要去掉
+     *
+     * @param url 创建或者修改短链接的原始链接
+     * @return 原始链接中的域名
+     */
+    public static String extractDomain(String url) {
+        String domain = null;
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            //host为www.xiatian.com形式
+            if (StrUtil.isNotBlank(host)) {
+                domain = host;
+                if (domain.startsWith("www.")) {
+                    //0-3被www.占据
+                    domain = host.substring(4);
+                }
+            }
+        } catch (Exception e) {
+            throw new ServiceException("域名信息解析失败");
+        }
+        return domain;
+    }
 }

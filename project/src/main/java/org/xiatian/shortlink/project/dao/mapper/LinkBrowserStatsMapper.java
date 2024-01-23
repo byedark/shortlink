@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.xiatian.shortlink.project.dao.entity.LinkBrowserStatsDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkBrowserStatsDO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkStatsReqDTO;
 

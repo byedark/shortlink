@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.xiatian.shortlink.project.dao.entity.*;
+import org.xiatian.shortlink.project.dao.entity.stats.*;
 import org.xiatian.shortlink.project.dao.mapper.*;
 import org.xiatian.shortlink.project.dto.req.ShortLinkGroupStatsAccessRecordReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkGroupStatsReqDTO;

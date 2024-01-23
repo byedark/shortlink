@@ -2,6 +2,8 @@ server:
   port: 8002
 
 spring:
+  application:
+    name: xiatian-admin
   datasource:
     # ShardingSphere 对 Driver自定义，实现分库分表等隐藏逻辑
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
@@ -16,3 +18,11 @@ spring:
       discovery:
         server-addr: 127.0.0.1:8848
 
+short-link:
+  group:
+    max-num: 20
+  flow-limit:
+    # enable系统变更使用
+    enable: true
+    time-window: 1
+    max-access-count: 10

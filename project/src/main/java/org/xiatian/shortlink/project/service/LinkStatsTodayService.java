@@ -1,7 +1,7 @@
 package org.xiatian.shortlink.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import org.xiatian.shortlink.project.dao.entity.LinkStatsTodayDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkStatsTodayDO;
 
 /**
  * 短链接今日统计接口层

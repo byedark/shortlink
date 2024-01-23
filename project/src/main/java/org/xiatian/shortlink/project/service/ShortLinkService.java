@@ -3,12 +3,12 @@ package org.xiatian.shortlink.project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import org.xiatian.shortlink.project.dao.entity.ShortLinkDO;
+import org.xiatian.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
+import org.xiatian.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkPageRespDTO;
@@ -29,11 +29,12 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     ShortLinkCreateRespDTO createShortLink(ShortLinkCreateReqDTO requestParam);
 
     /**
-     * 修改短链接
+     * 批量创建短链接
      *
-     * @param requestParam 修改短链接请求参数
+     * @param requestParam 批量创建短链接请求参数
+     * @return 批量创建短链接返回参数
      */
-    void updateShortLink(ShortLinkUpdateReqDTO requestParam);
+    ShortLinkBatchCreateRespDTO batchCreateShortLink(ShortLinkBatchCreateReqDTO requestParam);
 
     /**
      * 分页查询短链接
@@ -52,12 +53,9 @@ public interface ShortLinkService extends IService<ShortLinkDO> {
     List<ShortLinkGroupCountQueryRespDTO> listGroupShortLinkCount(List<String> requestParam);
 
     /**
-     * 短链接跳转
+     * 修改短链接
      *
-     * @param shortUri 短链接后缀
-     * @param request  HTTP 请求
-     * @param response HTTP 响应
+     * @param requestParam 修改短链接请求参数
      */
-    void restoreUrl(String shortUri, ServletRequest request, ServletResponse response);
-
+    void updateShortLink(ShortLinkUpdateReqDTO requestParam);
 }

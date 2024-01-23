@@ -3,7 +3,7 @@ package org.xiatian.shortlink.project.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
-import org.xiatian.shortlink.project.dao.entity.LinkStatsTodayDO;
+import org.xiatian.shortlink.project.dao.entity.stats.LinkStatsTodayDO;
 
 /**
  * 短链接今日统计持久层

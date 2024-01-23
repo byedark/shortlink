@@ -14,11 +14,7 @@ import org.xiatian.shortlink.admin.remote.ShortLinkRemoteService;
 @RequiredArgsConstructor
 public class UrlTitleController {
 
-    /**
-     * 后续重构为 SpringCloud Feign 调用
-     */
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
-    };
+    private final ShortLinkRemoteService shortLinkRemoteService;
 
     /**
      * 根据URL获取对应网站的标题

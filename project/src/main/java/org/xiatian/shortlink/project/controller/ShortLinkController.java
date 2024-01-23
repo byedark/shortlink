@@ -1,18 +1,20 @@
 package org.xiatian.shortlink.project.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.xiatian.shortlink.project.common.convention.result.Result;
 import org.xiatian.shortlink.project.common.convention.result.Results;
+import org.xiatian.shortlink.project.dto.req.ShortLinkBatchCreateReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkCreateReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkUpdateReqDTO;
+import org.xiatian.shortlink.project.dto.resp.ShortLinkBatchCreateRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkCreateRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkGroupCountQueryRespDTO;
 import org.xiatian.shortlink.project.dto.resp.ShortLinkPageRespDTO;
+import org.xiatian.shortlink.project.handler.CustomBlockHandler;
 import org.xiatian.shortlink.project.service.ShortLinkService;
 
 import java.util.List;
@@ -29,8 +31,22 @@ public class ShortLinkController {
      * 创建短链接
      */
     @PostMapping("/api/short-link/v1/create")
+    @SentinelResource(
+            //资源名称
+            value = "create_short-link",
+            blockHandler = "createShortLinkBlockHandlerMethod",
+            blockHandlerClass = CustomBlockHandler.class
+    )
     public Result<ShortLinkCreateRespDTO> createShortLink(@RequestBody ShortLinkCreateReqDTO requestParam) {
         return Results.success(shortLinkService.createShortLink(requestParam));
+    }
+
+    /**
+     * 批量创建短链接
+     */
+    @PostMapping("/api/short-link/v1/create/batch")
+    public Result<ShortLinkBatchCreateRespDTO> batchCreateShortLink(@RequestBody ShortLinkBatchCreateReqDTO requestParam) {
+        return Results.success(shortLinkService.batchCreateShortLink(requestParam));
     }
 
     /**
@@ -56,13 +72,5 @@ public class ShortLinkController {
     public Result<Void> updateShortLink(@RequestBody ShortLinkUpdateReqDTO requestParam) {
         shortLinkService.updateShortLink(requestParam);
         return Results.success();
-    }
-
-    /**
-     * 短链接跳转原始链接
-     */
-    @GetMapping("/{short-uri}")
-    public void restoreUrl(@PathVariable("short-uri") String shortUri, ServletRequest request, ServletResponse response) {
-        shortLinkService.restoreUrl(shortUri, request, response);
     }
 }

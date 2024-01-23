@@ -2,7 +2,9 @@ server:
   port: 8001
 
 spring:
-# shardingsphere分表mysql
+  application:
+    name: xiatian-shortlink
+  # shardingsphere分表mysql
   datasource:
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
@@ -21,6 +23,10 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+  sentinel:
+    transport:
+      dashboard: 43.143.154.173:8858
+      port: 8719
 short-link:
 # 短链接转跳地址
   domain:
@@ -29,6 +35,25 @@ short-link:
   stats:
     locale:
       amap-key: 824c511f0997586ea016f979fdb23087
+  goto-domain:
+    white-list:
+      enable: true
+      names: 'CSDN,知乎,掘金,博客园,GitHub,Gitee,牛客'
+      details:
+        - csdn.net
+        - zhihu.com
+        - juejin.cn
+        - github.com
+        - gitee.com
+        - nowcoder.com
+
+rocketmq:
+  name-server: http://common-rocketmq-dev.magestack.cn:9876
+  producer:
+    group: xiatian-shortlink-message-execute_pg
+    send-message-timeout: 2000
+    retry-times-when-send-failed: 1
+    retry-times-when-send-async-failed: 1
 
 # debug日志
 logging:

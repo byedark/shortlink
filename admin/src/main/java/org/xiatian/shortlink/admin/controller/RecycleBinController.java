@@ -1,6 +1,6 @@
 package org.xiatian.shortlink.admin.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,11 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.xiatian.shortlink.admin.common.convention.result.Result;
 import org.xiatian.shortlink.admin.common.convention.result.Results;
 import org.xiatian.shortlink.admin.remote.ShortLinkRemoteService;
-import org.xiatian.shortlink.admin.remote.dto.req.RecycleBinRecoverReqDTO;
-import org.xiatian.shortlink.admin.remote.dto.req.RecycleBinRemoveReqDTO;
-import org.xiatian.shortlink.admin.remote.dto.req.RecycleBinSaveReqDTO;
-import org.xiatian.shortlink.admin.remote.dto.req.ShortLinkRecycleBinPageReqDTO;
+import org.xiatian.shortlink.admin.remote.dto.req.recyclebin.RecycleBinRecoverReqDTO;
+import org.xiatian.shortlink.admin.remote.dto.req.recyclebin.RecycleBinRemoveReqDTO;
+import org.xiatian.shortlink.admin.remote.dto.req.recyclebin.RecycleBinSaveReqDTO;
+import org.xiatian.shortlink.admin.remote.dto.req.recyclebin.ShortLinkRecycleBinPageReqDTO;
 import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
+import org.xiatian.shortlink.admin.service.RecycleBinService;
 
 /**
  * 回收站管理控制层
@@ -22,11 +23,8 @@ import org.xiatian.shortlink.admin.remote.dto.resp.ShortLinkPageRespDTO;
 @RequiredArgsConstructor
 public class RecycleBinController {
 
-    /**
-     * 后续重构为 SpringCloud Feign 调用
-     */
-    ShortLinkRemoteService shortLinkRemoteService = new ShortLinkRemoteService() {
-    };
+    private final RecycleBinService recycleBinService;
+    private final ShortLinkRemoteService shortLinkRemoteService;
 
     /**
      * 保存回收站
@@ -41,8 +39,8 @@ public class RecycleBinController {
      * 分页查询回收站短链接
      */
     @GetMapping("/api/short-link/admin/v1/recycle-bin/page")
-    public Result<IPage<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
-        return shortLinkRemoteService.pageRecycleBinShortLink(requestParam);
+    public Result<Page<ShortLinkPageRespDTO>> pageShortLink(ShortLinkRecycleBinPageReqDTO requestParam) {
+        return recycleBinService.pageRecycleBinShortLink(requestParam);
     }
 
     /**
