@@ -119,7 +119,7 @@ public class ShortLinkServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLink
             log.warn("短链接：{} 重复", fullShortUrl);
             throw new ServiceException("短链接生成异常");
         }
-        //提前存入缓存进行缓存预热
+        //提前存入缓存进行缓存预热，2，8定律进行缓存预热
         stringRedisTemplate.opsForValue().set(
                 fullShortUrl,
                 requestParam.getOriginUrl(),

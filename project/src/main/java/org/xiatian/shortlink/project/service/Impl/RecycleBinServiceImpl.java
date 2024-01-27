@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.xiatian.shortlink.project.common.annotation.ClearAndReloadCache;
 import org.xiatian.shortlink.project.dao.entity.ShortLinkDO;
 import org.xiatian.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.xiatian.shortlink.project.dto.req.ShortLinkRecycleBinPageReqDTO;
@@ -31,6 +32,7 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
+    @ClearAndReloadCache(name = GOTO_SHORT_LINK_KEY)
     public void saveRecycleBin(RecycleBinSaveReqDTO requestParam) {
         LambdaQueryWrapper<ShortLinkDO> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(ShortLinkDO::getFullShortUrl,requestParam.getFullShortUrl())
@@ -41,8 +43,8 @@ public class RecycleBinServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLin
         baseMapper.update(shortLinkDO, lambdaQueryWrapper);
         //移入回收站后也要删除缓存,假设极限情况一个请求过来数据库查到了，然后还没写缓存，删掉了，结果写进去了。变成了缓存里始终查得到
         //延迟双删或者canal监听binlog日志法解决缓存不一致性问题
-        //TODO: 完成缓存一致性功能
-        stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
+        //通过注解完成缓存一致性功能
+        //stringRedisTemplate.delete(String.format(GOTO_SHORT_LINK_KEY, requestParam.getFullShortUrl()));
     }
 
     @Override

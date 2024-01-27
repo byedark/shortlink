@@ -1,12 +1,10 @@
-package org.xiatian.shortlink.project.service.Impl;
+package org.xiatian.shortlink.project.handler.chain;
 
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
@@ -20,14 +18,14 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.xiatian.shortlink.project.dao.entity.ShortLinkDO;
 import org.xiatian.shortlink.project.dao.entity.ShortLinkGotoDO;
 import org.xiatian.shortlink.project.dao.mapper.ShortLinkGotoMapper;
 import org.xiatian.shortlink.project.dao.mapper.ShortLinkMapper;
 import org.xiatian.shortlink.project.dto.biz.ShortLinkStatsRecordDTO;
+import org.xiatian.shortlink.project.handler.ShortLinkChainHandler;
 import org.xiatian.shortlink.project.mq.producer.ShortLinkStatsSaveProducer;
-import org.xiatian.shortlink.project.service.RedirectService;
 import org.xiatian.shortlink.project.toolkit.LinkUtil;
 
 import java.util.Arrays;
@@ -40,24 +38,23 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.xiatian.shortlink.project.common.constant.RedisKeyConstant.*;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkDO> implements RedirectService{
+public class RedirectChainHandler implements ShortLinkChainHandler<String> {
 
     private final RBloomFilter<String> shortUriCreateCachePenetrationBloomFilter;
     private final ShortLinkGotoMapper shortLinkGotoMapper;
     private final RedissonClient redissonClient;
     private final StringRedisTemplate stringRedisTemplate;
     private final ShortLinkStatsSaveProducer shortLinkStatsSaveProducer;
+    private final ShortLinkMapper shortLinkMapper;
 
     @Value("${short-link.domain.default}")
     private String createShortLinkDefaultDomain;
 
-    //转跳url
     @SneakyThrows
     @Override
-    public void restoreUrl(String shortUri, ServletRequest request, ServletResponse response) {
-        //TODO: 惰性删除+数据库定时任务
+    public void handler(String shortUri, ServletRequest request, ServletResponse response) {
         //短链接已经存在了布隆过滤器里面,先去布隆过滤器查询
         //缓存需要缓存链接和空值
         //这里直接根据配置文件得到完整的短链接地址
@@ -116,28 +113,13 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
                     .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
                     .eq(ShortLinkDO::getDelFlag, 0)
                     .eq(ShortLinkDO::getEnableStatus, 0);
-            ShortLinkDO shortLinkDO = baseMapper.selectOne(queryWrapper);
+            ShortLinkDO shortLinkDO = shortLinkMapper.selectOne(queryWrapper);
             //查询到后仍然要判断是否可以转跳，可能已经过期，这时候如果一个人访问大量过期链接依旧会导致数据库压力过大，继续加缓存
-            //两步，设置空缓存，如果过期了，设置直接惰性删除
             if (shortLinkDO == null || (shortLinkDO.getValidDate() != null && shortLinkDO.getValidDate().before(new Date()))) {
-                //已经过期，进行惰性删除，并设置空值
                 stringRedisTemplate.opsForValue().set(String.format(GOTO_IS_NULL_SHORT_LINK_KEY, fullShortUrl), "-", 30, TimeUnit.MINUTES);
-                //如果过期直接删除，不存在缓存不一致的问题，一定是缓存查不到了才导致查了数据库，而缓存一定是先行过期的
-                LambdaUpdateWrapper<ShortLinkDO> updateWrapper = Wrappers.lambdaUpdate(ShortLinkDO.class)
-                        .eq(ShortLinkDO::getFullShortUrl, fullShortUrl)
-                        .eq(ShortLinkDO::getGid, shortLinkGotoDO.getGid())
-                        .eq(ShortLinkDO::getEnableStatus, 1)
-                        .eq(ShortLinkDO::getDelTime, 0L)
-                        .eq(ShortLinkDO::getDelFlag, 0);
-                ShortLinkDO delShortLinkDO = ShortLinkDO.builder()
-                        .delTime(System.currentTimeMillis())
-                        .build();
-                delShortLinkDO.setDelFlag(1);
-                baseMapper.update(delShortLinkDO, updateWrapper);
                 ((HttpServletResponse) response).sendRedirect("/page/notfound");
                 return;
             }
-            //设置缓存
             stringRedisTemplate.opsForValue().set(
                     String.format(GOTO_SHORT_LINK_KEY, fullShortUrl),
                     shortLinkDO.getOriginUrl(),
@@ -154,13 +136,18 @@ public class RedirectServiceImpl extends ServiceImpl<ShortLinkMapper, ShortLinkD
         }
     }
 
+    @Override
+    public int getOrder() {
+        return 20;
+    }
+
     // 为访问短链接的人传递一个cookie记录其临时的身份信息，并获得他的所有网络设备游览器等信息返回
     private ShortLinkStatsRecordDTO buildLinkStatsRecordAndSetUser(String fullShortUrl, ServletRequest request, ServletResponse response) {
         AtomicBoolean uvFirstFlag = new AtomicBoolean();
         Cookie[] cookies = ((HttpServletRequest) request).getCookies();
         AtomicReference<String> uv = new AtomicReference<>();
         Runnable addResponseCookieTask = () -> {
-            uv.set(UUID.fastUUID().toString());
+            uv.set(cn.hutool.core.lang.UUID.fastUUID().toString());
             Cookie uvCookie = new Cookie("uv", uv.get());
             uvCookie.setMaxAge(60 * 60 * 24 * 30);
             uvCookie.setPath(StrUtil.sub(fullShortUrl, fullShortUrl.indexOf("/"), fullShortUrl.length()));

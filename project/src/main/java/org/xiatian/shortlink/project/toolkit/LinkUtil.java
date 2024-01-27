@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
 
+import static org.xiatian.shortlink.project.common.constant.ShortLinkConstant.DEFAULT_CACHE_ONE_DAY_TIME;
 import static org.xiatian.shortlink.project.common.constant.ShortLinkConstant.DEFAULT_CACHE_VALID_TIME;
 
 
@@ -29,8 +30,15 @@ public class LinkUtil {
         //增加一个随机值，防止同一时间段创建，过期时间一样，导致大量key同时过期造成数据库压力过大
         Random random = new Random();
         int randomNumber = random.nextInt(100000);
+        //2/8原则
         return Optional.ofNullable(validDate)
-                .map(each -> DateUtil.between(new Date(), each, DateUnit.MS))
+                .map(each -> {
+                    long timeBetween = DateUtil.between(new Date(), each, DateUnit.MS);
+                    //如果2/8原则之后剩下时间不足一天，直接设置一天的有效期
+                    if(timeBetween <= DEFAULT_CACHE_ONE_DAY_TIME) return timeBetween;
+                    //增加一个不到一天的随机值防止缓存雪崩
+                    else return timeBetween/4+randomNumber;
+                })
                 .orElse(DEFAULT_CACHE_VALID_TIME+randomNumber);
     }
 

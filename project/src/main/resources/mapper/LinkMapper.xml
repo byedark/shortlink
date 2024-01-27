@@ -43,4 +43,8 @@
             </otherwise>
         </choose>
     </select>
+
+    <select id="selectScanLink" resultType="org.xiatian.shortlink.project.dao.entity.ShortLinkDO">
+        select * from t_link where del_flag = 0 and id > #{fid} limit #{num}
+    </select>
 </mapper>

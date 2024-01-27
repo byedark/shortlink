@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Update;
 import org.xiatian.shortlink.project.dao.entity.ShortLinkDO;
 import org.xiatian.shortlink.project.dto.req.ShortLinkPageReqDTO;
 
+import java.util.List;
+
 /**
  * 短链接持久层
  */
@@ -30,4 +32,9 @@ public interface ShortLinkMapper extends BaseMapper<ShortLinkDO> {
             @Param("totalUv") Integer totalUv,
             @Param("totalUip") Integer totalUip
     );
+
+    /**
+     * 扫描过期链接
+     */
+    List<ShortLinkDO> selectScanLink(@Param("fid") long flagUuid,@Param("num") int defaultLinkScanNum);
 }
